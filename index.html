@@ -33,15 +33,22 @@
 			var start = new Date().getTime();
 			var highScore = Number.MAX_SAFE_INTEGER;
 			var size = 500;
-            // var getHsUrl = "http://localhost:8081/geths" // For local running
-            // var getSizeUrl = "http://localhost:8081/getsize"
-            // var setScore = "http://localhost:8081/setscore"
-            // var setHsUrl = "http://localhost:8081/seths"
+			var borderRed = 50.0;
+			var borderGreen = 50.0;
+			var borderBlue = 50.0;
+			var newBorderWidth = "initial width";
+			var newBorderStyle = "initial style";
 
-            var getHsUrl = "/geths" // For kubernetes
-            var getSizeUrl = "/getsize"
-            var setScore = "/setscore/"
-            var setHsUrl = "/seths/"
+            var getHsUrl = "http://localhost:8081/geths"; // For local running
+            var getSizeUrl = "http://localhost:8081/getsize";
+            var setScore = "http://localhost:8081/setscore";
+            var setHsUrl = "http://localhost:8081/seths";
+			var getBorderUrl = "http://localhost:8081/borderchange";
+
+            // var getHsUrl = "/geths" // For kubernetes
+            // var getSizeUrl = "/getsize"
+            // var setScore = "/setscore/"
+            // var setHsUrl = "/seths/"
 
 			
 			function makeShapeAppear(){
@@ -50,10 +57,10 @@
                     url: getHsUrl,
                     dataType: "jsonp",
                     success: function(data) {
-                        highScore = data.hs
+                        highScore = data.hs;
                         document.getElementById("bestScore").innerHTML = highScore + "s";
                     }
-                })
+                });
 
                 $.ajax({
                     url: getSizeUrl,
@@ -61,18 +68,55 @@
                     success: function(data) {
                         size = data.size
                     }
-                })
+                });
+
+				//set new getBorderUrl with the (randomised) previous borders of the shape
+				// ex: http://localhost:8081/borderchange/st/dotted/wd/thin/scred/250/scgreen/1/scblue/1
+				getBorderUrl = "http://localhost:8081/borderchange/st/dotted/wd/thin/scred/250/scgreen/1/scblue/1";
+
+				$.ajax({
+					url: getBorderUrl,
+					dataType: "jsonp",
+					success: function(data) {
+						newBorderWidth = data.width;
+						newBorderStyle = data.style;
+						let cr = parseFloat(data.crString);
+						cr = 25.6*cr;
+						cr = Math.floor(cr);
+						let cg = parseFloat(data.cgString);
+						cg = 25.6*cg;
+						cg = Math.floor(cg);
+						let cb = parseFloat(data.cbString);
+						cb = 25.6*cb;
+						cb = Math.floor(cb);
+						borderRed = cr.toString(16);
+						borderGreen = cg.toString(16);
+						borderBlue = cb.toString(16);
+
+					}
+				});
 
 				var top = Math.random()*size;
 				var left = Math.random()*size;
 				var width = Math.random()*size/2 + 100;
-				if(Math.random() > 0.5){
-					document.getElementById("shape").style.borderRadius = "50%";	// Circle			
-				} else {
-					document.getElementById("shape").style.borderRadius = "0"; // Square
-				}
+				// if(Math.random() > 0.5){
+				// 	document.getElementById("shape").style.borderRadius = "50%";	// Circle
+				// } else {
+				// 	document.getElementById("shape").style.borderRadius = "0"; // Square
+				// }
 				document.getElementById("shape").style.width= width + "px";
 				document.getElementById("shape").style.height= width + "px";
+
+				document.getElementById("shape").style.borderWidth = newBorderWidth;
+
+                // <p class="bold">Your time: <span newBorderWidth></p>  //how to print?
+                // document.write(document.getElementById("shape").style.borderWidth);
+
+				document.getElementById("shape").style.borderStyle = newBorderStyle;
+				document.getElementById("shape").style.borderColor = "#"  + borderRed + borderGreen + borderBlue;
+				// console.log(newBorderWidth);
+				// console.log(newBorderStyle);
+				// console.log(borderRed);
 
 				document.getElementById("shape").style.top= top + "px";
 				document.getElementById("shape").style.left= left + "px";
@@ -95,31 +139,31 @@
 				if (timeTaken < highScore) {
                     highScore = timeTaken;
                     document.getElementById("bestScore").innerHTML = highScore + "s";
-                    // setHsUrl = "http://localhost:8081/seths/" + timeTaken;
-                    setHsUrl = "/seths/" + timeTaken;
+                    setHsUrl = "http://localhost:8081/seths/" + timeTaken;
+                    // setHsUrl = "/seths/" + timeTaken;
                     $.ajax({
                         url: setHsUrl,
                         dataType: "jsonp",
                         success: function(data) {
-                            highScore = data.hs
+                            highScore = data.hs;
                             document.getElementById("bestScore").innerHTML = highScore + "s";
                         }
                     })
 				}
-                // setScore = "http://localhost:8081/setscore/" + timeTaken;
-                setScore = "/setscore/" + timeTaken;
+                setScore = "http://localhost:8081/setscore/" + timeTaken;
+                // setScore = "/setscore/" + timeTaken;
                 $.ajax({
                     url: setScore,
                     dataType: "jsonp",
                     success: function(data) {
                        
                     }
-                })
+                });
 
 
 
 				appearAfterDelay();
-			}
+			};
             function getRandomColor() {
 				var letters = '0123456789ABCDEF';
 				var color = '#';
